@@ -1,3 +1,8 @@
 .idea/
-Audio/data
-Video/data
+venv/
+*.png
+*.jpg
+*.csv
+*.wav
+*.mp4
+*.mp3
