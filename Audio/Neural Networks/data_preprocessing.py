@@ -1,4 +1,4 @@
-#For training audio model
+# For training audio model
 import librosa
 import librosa.display
 import glob
@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 
 
-files = np.asarray(glob.glob("../data/*Actor_08/*wav"))  # get all file names
+files = np.asarray(glob.glob("../data/**/*wav"))  # get all file names
 
 print(len(files))
 # create emotion dictionary
@@ -15,11 +15,11 @@ emotions = {'01': "neutral", '02': "calm", '03': "happy", '04': "sad",
             '05': "angry", '06': "fearful", '07': "disgust", '08': "surprised"}
 
 
-if not os.path.exists('output_train'):
-    os.mkdir('output_train')
-
-if not os.path.exists('output_test'):
-    os.mkdir('output_test')
+# if not os.path.exists('output_train'):
+#     os.mkdir('output_train')
+#
+# if not os.path.exists('output_test'):
+#     os.mkdir('output_test')
 
 
 
@@ -33,11 +33,11 @@ for audioFile in files:
     save_path_test = 'output_test/' + emotion  # Create new file name
     save_path_image = 'output_spectrogram/'
 
-    if not os.path.exists(save_path_train):
-        os.mkdir(save_path_train)
-
-    if not os.path.exists(save_path_test):
-        os.mkdir(save_path_test)
+    # if not os.path.exists(save_path_train):
+    #     os.mkdir(save_path_train)
+    #
+    # if not os.path.exists(save_path_test):
+    #     os.mkdir(save_path_test)
 
     if not os.path.exists(save_path_image):
         os.mkdir(save_path_image)
@@ -49,7 +49,7 @@ for audioFile in files:
     # Make spectrogram from audio file
     mel_spect = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=1024, hop_length=100)
     mel_spect = librosa.power_to_db(mel_spect, ref=np.max)
-    librosa.display.specshow(mel_spect, y_axis='mel', fmax=20000, x_axis='time')
+    librosa.display.specshow(mel_spect, fmax=20000)
 
     p = save_path_image + "/" + audioFile[-24:-4]
 
@@ -61,5 +61,6 @@ for audioFile in files:
     #     p = save_path_train + "/" + audioFile[-24:-4]
     #     counts[emotion] = count + 1
 
-    plt.savefig(p)
+    plt.axis('off')
+    plt.savefig(p, bbox_inches='tight', pad_inches=0)
     plt.close('all')
