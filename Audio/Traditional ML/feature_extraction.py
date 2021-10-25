@@ -29,7 +29,7 @@ def load_audio_features():
     try:
         df = pd.read_csv("features.csv")
     except FileNotFoundError:
-        files = np.asarray(glob.glob("data/**/*.wav"))
+        files = np.asarray(glob.glob("../data/**/*.wav"))
         emotions = {'01': "neutral", '02': "calm", '03': "happy", '04': "sad",
                     '05': "angry", '06': "fearful", '07': "disgust", '08': "surprised"}
 
@@ -40,8 +40,10 @@ def load_audio_features():
     return df
 
 
-df = load_audio_features()
-print(df.labels.value_counts())
+if __name__ == "__main__":
+    df = load_audio_features()
+    print(df.labels.value_counts())
+
 # spectral_features = {'chroma_stft': [], 'chroma_cqt': [], 'chroma_cens': [],
 #                      'melspectrogram': [], 'mfcc': [], 'rms': [], 'spectral_centroid': [],
 #                      'spectral_bandwidth': [], 'spectral_contrast': [],
