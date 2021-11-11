@@ -3,7 +3,7 @@ import numpy as np
 import librosa as lb
 from librosa import feature as ft
 
-files = np.asarray(glob.glob("data/audio_data/**/*wav"))
+files = np.asarray(glob.glob("Traditional ML/data/audio_data/**/*wav"))
 
 spectral_features = {'chroma_stft': [], 'chroma_cqt': [], 'chroma_cens': [],
                      'melspectrogram': [], 'mfcc': [], 'rms': [], 'spectral_centroid': [],
