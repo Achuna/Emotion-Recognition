@@ -5,11 +5,13 @@ from fer import FER
 def capture_live_data(detector, video_capture):
     _, frame = video_capture.read()
     output = detector.detect_emotions(frame)
-    return frame, output[0]["box"], output[0]["emotions"]
+    if len(output) > 0:
+        return frame, output[0]["box"], output[0]["emotions"]
+    return frame, None, None
 
 
 def display_frame(frame, bounding_box, predictions):
-    if len(bounding_box and predictions) > 0:
+    if bounding_box is not None and predictions is not None:
         bb = bounding_box
 
         # Color is in BGR format, not RGB! (Blame OpenCV)
