@@ -10,9 +10,16 @@ def capture_live_data(detector, video_capture):
     return frame, None, None
 
 
-def display_frame(frame, bounding_box, predictions):
+def display_frame(frame, bounding_box, predictions, mirror=False):
+    if mirror:
+        frame = cv2.flip(frame, 1)
+
     if bounding_box is not None and predictions is not None:
-        bb = bounding_box
+        if mirror:
+            bb = (frame.shape[1] - bounding_box[0] - bounding_box[2], bounding_box[1],
+                  bounding_box[2], bounding_box[3])
+        else:
+            bb = bounding_box
 
         # Color is in BGR format, not RGB! (Blame OpenCV)
         cv2.rectangle(frame, (bb[0], bb[1]), (bb[0] + bb[2], bb[1] + bb[3]),
@@ -33,11 +40,18 @@ def display_frame(frame, bounding_box, predictions):
 def main_loop():
     detector = FER()
     vid_feed = cv2.VideoCapture(0)
+    frame_count = 0
+    frame_cap = 5
+
     while True:
-        display_frame(*capture_live_data(detector, vid_feed))
+        frame_count += 1
+        frame, bounding_box, predictions = capture_live_data(detector, vid_feed)
+        display_frame(frame, bounding_box, predictions, mirror=True)
         # Press 'Q' to quit
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+        if frame_count >= frame_cap:
+            print(predictions)
     vid_feed.release()
     cv2.destroyAllWindows()
 
