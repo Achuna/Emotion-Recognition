@@ -41,7 +41,7 @@ def main_loop():
     detector = FER()
     vid_feed = cv2.VideoCapture(0)
     frame_count = 0
-    frame_cap = 5
+    frame_interval = 5
 
     while True:
         frame_count += 1
@@ -50,7 +50,8 @@ def main_loop():
         # Press 'Q' to quit
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        if frame_count >= frame_cap:
+        if frame_count >= frame_interval:
+            frame_count = 0
             print(predictions)
     vid_feed.release()
     cv2.destroyAllWindows()
