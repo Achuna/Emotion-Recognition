@@ -6,13 +6,17 @@ from fer import FER
 class VideoCamera:
     def __init__(self, source=0):
         self.camera = cv2.VideoCapture(source)  # Captures webcam feed by default
+        self.frame = None
 
     def __del__(self):
         self.camera.release()
 
-    def capture_frame(self):
-        _, frame = self.camera.read()
-        return frame
+    def next_frame(self):
+        _, self.frame = self.camera.read()
+        return self.frame
+
+    def current_frame(self):
+        return self.frame
 
 
 # def capture_live_data(detector, video_capture):
