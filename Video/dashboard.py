@@ -65,7 +65,7 @@ class Dashboard:
         self.vid_toggle = Button(canvas, text="Toggle Webcam", command=self.toggle_video,
                                  fg=txt_color, bg=btn_color)
         self.vid_toggle.grid(row=1, column=0, padx=10, pady=(0, 10))
-        self.audio_toggle = Button(canvas, text="Toggle Microphone",
+        self.audio_toggle = Button(canvas, text="Toggle Microphone", command=self.toggle_audio,
                                    fg=txt_color, bg=btn_color)
         self.audio_toggle.grid(row=1, column=1, padx=10, pady=(0, 10))
 
@@ -111,7 +111,7 @@ class Dashboard:
                 # Purposely-induced delay that prevents resource-hogging when disabled
                 sleep(0.1)
 
-    def update_predictions(self, i):
+    def update_predictions(self, _):
         if not self.vid_stop_event.is_set() and self.bb is not None:
             predictions = self.detector.detect_emotions(self.frame, [self.bb])[0]["emotions"]
             predictions = list(predictions.values())
@@ -119,6 +119,10 @@ class Dashboard:
             predictions = [0] * len(emotions)
         for bar, p in zip(self.bars, predictions):
             bar.set_height(p)
+
+    def toggle_audio(self):
+        # Insert code
+        return
 
     def toggle_video(self):
         if self.vid_stop_event.is_set():
