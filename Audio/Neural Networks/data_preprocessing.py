@@ -68,7 +68,7 @@ def generate_spectrogram_info():
                 '05': "angry", '06': "fearful", '07': "disgust", '08': "surprised"}
 
     # create emotion dictionary
-    emotions = {'01': "neutral", '03': "happy", '04': "sad"}
+    # emotions = {'01': "neutral", '03': "happy", '04': "sad"}
 
     df = pd.DataFrame(columns=['feature'])
     counter = 0
