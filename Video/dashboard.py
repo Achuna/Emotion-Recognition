@@ -1,18 +1,19 @@
+import pickle
 import threading
 from time import sleep
 from tkinter import *
-import pickle
+
+import librosa.display
 import numpy as np
+import sounddevice as sd
+from cv2 import cv2
 from fer import FER
 from matplotlib import pyplot as plt, animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image, ImageTk
-from cv2 import cv2
-import librosa.display
 
 from Video.video import VideoCamera
 
-import sounddevice as sd
 
 emotions = ["Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral"]
 
@@ -71,7 +72,6 @@ class Dashboard:
             axs[1].spines[spine].set_color(txt_color)
         axs[1].tick_params(axis='x', colors=txt_color)
         axs[1].tick_params(axis='y', colors=txt_color)
-
 
         # Create plot component
         fig_canvas = FigureCanvasTkAgg(self.fig, master=canvas)
@@ -133,43 +133,11 @@ class Dashboard:
                 # Purposely-induced delay that prevents resource-hogging when disabled
                 sleep(0.1)
 
-    def update_predictions(self, _):
-        if not self.vid_stop_event.is_set() and self.bb is not None:
-            predictions = self.detector.detect_emotions(self.frame, [self.bb])[0]["emotions"]
-            predictions = list(predictions.values())
-        else:
-            predictions = [0] * len(emotions)
-        for bar, p in zip(self.vid_bars, predictions):
-            bar.set_height(p)
-
-        if not self.audio_stop_event.is_set() and self.mfccs is not None:
-            predictions = []
-            if _ % 3 == 0:
-                categories = ['Angry', 'Happy', 'Calm', 'Sad', 'Disgust', 'Surprised', 'Fear']
-
-
-                predictions.append(angryModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(disgustModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(fearModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(happyModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(sadModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(surprisedModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(calmModel.predict_proba([self.mfccs])[0][0])
-                print(predictions)
-
-        else:
-            predictions = [0] * len(emotions)
-        for bar, p in zip(self.audio_bars, predictions):
-            bar.set_height(p)
-
-
-
     def stream_audio(self):
         # Loop until the window is closed
         while not self.app_stop_event.is_set():
             # Only use audio when allowed
             if not self.audio_stop_event.is_set():
-                # Insert code
                 sample_rate = 44100  # Sample rate
                 seconds = 3  # Duration of recording
 
@@ -186,14 +154,14 @@ class Dashboard:
                 # Purposely-induced delay that prevents resource-hogging when disabled
                 sleep(0.1)
 
+    def update_predictions(self, i):
+        self.update_audio_predictions(i)
+        self.update_video_predictions()
 
-    def update_audio_predictions(self, _):
+    def update_audio_predictions(self, i):
         if not self.audio_stop_event.is_set() and self.mfccs is not None:
             predictions = []
-            if _ % 3 == 0:
-                categories = ['Angry', 'Happy', 'Calm', 'Sad', 'Disgust', 'Surprised', 'Fear']
-
-
+            if i % 3 == 0:
                 predictions.append(angryModel.predict_proba([self.mfccs])[0][0])
                 predictions.append(disgustModel.predict_proba([self.mfccs])[0][0])
                 predictions.append(fearModel.predict_proba([self.mfccs])[0][0])
@@ -202,12 +170,19 @@ class Dashboard:
                 predictions.append(surprisedModel.predict_proba([self.mfccs])[0][0])
                 predictions.append(calmModel.predict_proba([self.mfccs])[0][0])
                 print(predictions)
-
         else:
             predictions = [0] * len(emotions)
         for bar, p in zip(self.audio_bars, predictions):
             bar.set_height(p)
 
+    def update_video_predictions(self):
+        if not self.vid_stop_event.is_set() and self.bb is not None:
+            predictions = self.detector.detect_emotions(self.frame, [self.bb])[0]["emotions"]
+            predictions = list(predictions.values())
+        else:
+            predictions = [0] * len(emotions)
+        for bar, p in zip(self.vid_bars, predictions):
+            bar.set_height(p)
 
     def toggle_audio(self):
         if self.audio_stop_event.is_set():
