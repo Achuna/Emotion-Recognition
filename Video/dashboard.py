@@ -1,5 +1,6 @@
 import pickle
 import threading
+import warnings
 from time import sleep
 from tkinter import *
 
@@ -13,7 +14,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image, ImageTk
 
 from Video.video import VideoCamera
-
 
 emotions = ["Angry", "Disgust", "Fear", "Happy", "Sad", "Surprise", "Neutral"]
 
@@ -33,6 +33,10 @@ class Dashboard:
         self.empty_frame = np.full(shape=(480, 640, 3), fill_value=0x1f, dtype=np.uint8)
         self.bb = None
         self.mfccs = None
+
+        # Preload emotion recognition model for video input
+        self.detector.detect_emotions(np.zeros((48, 48, 3), dtype=np.uint8),
+                                      face_rectangles=[(0, 0, 48, 48)])
 
         # Create window
         self.root = Tk()
@@ -89,11 +93,11 @@ class Dashboard:
         # Create events and threads
         self.app_stop_event = threading.Event()
         self.vid_stop_event = threading.Event()
+        self.audio_stop_event = threading.Event()
+
         self.vid_thread = threading.Thread(target=self.stream_frames, args=())
         self.vid_thread.start()
 
-        # audio threads
-        self.audio_stop_event = threading.Event()
         self.audio_thread = threading.Thread(target=self.stream_audio, args=())
         self.audio_thread.start()
 
@@ -141,12 +145,11 @@ class Dashboard:
                 sample_rate = 44100  # Sample rate
                 seconds = 3  # Duration of recording
 
-                print("TALK NOW...")
                 sd.default.latency = ('low', 'low')
-                X = sd.rec(int(seconds * sample_rate), samplerate=sample_rate, channels=1)
+                rec = sd.rec(int(seconds * sample_rate), samplerate=sample_rate, channels=1)
                 sd.wait()  # Wait until recording is finished
 
-                y, _ = librosa.effects.trim(X.flatten())  # Trim leading and trailing silence from an audio signal.
+                y, _ = librosa.effects.trim(rec.flatten())  # Trim leading and trailing silence from an audio signal.
                 self.mfccs = np.mean(librosa.feature.mfcc(y=y, sr=sample_rate, n_mfcc=40).T, axis=0)
 
             else:
@@ -162,14 +165,15 @@ class Dashboard:
         if not self.audio_stop_event.is_set() and self.mfccs is not None:
             predictions = []
             if i % 3 == 0:
-                predictions.append(angryModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(disgustModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(fearModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(happyModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(sadModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(surprisedModel.predict_proba([self.mfccs])[0][0])
-                predictions.append(calmModel.predict_proba([self.mfccs])[0][0])
-                print(predictions)
+                mfccs = self.mfccs
+                predictions = [angryModel.predict_proba([mfccs])[0][0],
+                               disgustModel.predict_proba([mfccs])[0][0],
+                               fearModel.predict_proba([mfccs])[0][0],
+                               happyModel.predict_proba([mfccs])[0][0],
+                               sadModel.predict_proba([mfccs])[0][0],
+                               surprisedModel.predict_proba([mfccs])[0][0],
+                               calmModel.predict_proba([mfccs])[0][0]]
+                predictions = [x / sum(predictions) for x in predictions]
         else:
             predictions = [0] * len(emotions)
         for bar, p in zip(self.audio_bars, predictions):
@@ -208,6 +212,9 @@ class Dashboard:
 
 
 if __name__ == "__main__":
+    # Filter annoying warnings from Scikit-learn
+    warnings.filterwarnings("ignore", category=UserWarning)
+
     print("Loading Models...")
 
     with open('../Audio/Neural Networks/angry_model.pkl', 'rb') as f:
