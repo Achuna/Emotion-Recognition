@@ -34,6 +34,7 @@ class Dashboard:
         self.bb = None
         self.mfccs = None
 
+        print("Loading & Preparing Video Model...")
         # Preload emotion recognition model for video input
         self.detector.detect_emotions(np.zeros((48, 48, 3), dtype=np.uint8),
                                       face_rectangles=[(0, 0, 48, 48)])
@@ -191,14 +192,18 @@ class Dashboard:
     def toggle_audio(self):
         if self.audio_stop_event.is_set():
             self.audio_stop_event.clear()
+            print("Enabling Microphone")
         else:
             self.audio_stop_event.set()
+            print("Disabling Microphone")
 
     def toggle_video(self):
         if self.vid_stop_event.is_set():
             self.vid_stop_event.clear()
+            print("Enabling Webcam")
         else:
             self.vid_stop_event.set()
+            print("Disabling Webcam")
 
     def on_close(self):
         self.app_stop_event.set()
@@ -215,29 +220,31 @@ if __name__ == "__main__":
     # Filter annoying warnings from Scikit-learn
     warnings.filterwarnings("ignore", category=UserWarning)
 
-    print("Loading Models...")
+    print("Loading Audio Models...")
 
-    with open('../Audio/Neural Networks/angry_model.pkl', 'rb') as f:
+    with open('Audio/Neural Networks/angry_model.pkl', 'rb') as f:
         angryModel = pickle.load(f)
 
-    with open('../Audio/Neural Networks/happy_model.pkl', 'rb') as f:
+    with open('Audio/Neural Networks/happy_model.pkl', 'rb') as f:
         happyModel = pickle.load(f)
 
-    with open('../Audio/Neural Networks/calm_model.pkl', 'rb') as f:
+    with open('Audio/Neural Networks/calm_model.pkl', 'rb') as f:
         calmModel = pickle.load(f)
 
-    with open('../Audio/Neural Networks/sad_model.pkl', 'rb') as f:
+    with open('Audio/Neural Networks/sad_model.pkl', 'rb') as f:
         sadModel = pickle.load(f)
 
-    with open('../Audio/Neural Networks/disgust_model.pkl', 'rb') as f:
+    with open('Audio/Neural Networks/disgust_model.pkl', 'rb') as f:
         disgustModel = pickle.load(f)
 
-    with open('../Audio/Neural Networks/surprised_model.pkl', 'rb') as f:
+    with open('Audio/Neural Networks/surprised_model.pkl', 'rb') as f:
         surprisedModel = pickle.load(f)
 
-    with open('../Audio/Neural Networks/fearful_model.pkl', 'rb') as f:
+    with open('Audio/Neural Networks/fearful_model.pkl', 'rb') as f:
         fearModel = pickle.load(f)
 
+    print("Loading Dashboard...")
     app = Dashboard()
     ani = animation.FuncAnimation(app.fig, app.update_predictions, interval=1000)
+    print(">> Launching Dashboard! <<")
     app.root.mainloop()
